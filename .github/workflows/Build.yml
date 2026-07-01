@@ -6,6 +6,8 @@ on:
 
 env:
   BUILD_CONFIGURATION: Release
+  premissions:
+    contents: write
 
 jobs:
   Windows:
