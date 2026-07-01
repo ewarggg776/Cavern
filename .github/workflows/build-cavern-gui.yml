@@ -1,51 +1,52 @@
-name: Build CavernizeGUI (Windows)                                                                                                                                                                                             
-                                                                                                                                                                                                                                   
-    on:                                                                                                                                                                                                                            
-      workflow_dispatch:                                                                                                                                                                                                           
-        inputs:                                                                                                                                                                                                                    
-          configuration:                                                                                                                                                                                                           
-            description: 'Build configuration (Release or Debug)'                                                                                                                                                                  
-            required: true                                                                                                                                                                                                         
-            default: 'Release'                                                                                                                                                                                                     
-                                                                                                                                                                                                                                   
-    jobs:                                                                                                                                                                                                                          
-      build-windows:                                                                                                                                                                                                               
-        runs-on: windows-latest                                                                                                                                                                                                    
-        defaults:                                                                                                                                                                                                                  
-          run:                                                                                                                                                                                                                     
-            shell: pwsh                                                                                                                                                                                                            
-        steps:                                                                                                                                                                                                                     
-          - name: Checkout repository                                                                                                                                                                                              
-            uses: actions/checkout@v4                                                                                                                                                                                              
-            with:                                                                                                                                                                                                                  
-              fetch-depth: 0                                                                                                                                                                                                       
-                                                                                                                                                                                                                                   
-          - name: Setup .NET 8 SDK                                                                                                                                                                                                 
-            uses: actions/setup-dotnet@v4                                                                                                                                                                                          
-            with:                                                                                                                                                                                                                  
-              dotnet-version: '8.0.x'                                                                                                                                                                                              
-              include-prerelease: true                                                                                                                                                                                             
-                                                                                                                                                                                                                                   
-          - name: Restore NuGet packages                                                                                                                                                                                           
-            run: dotnet restore "CavernSamples/CavernizeGUI/CavernizeGUI.csproj"                                                                                                                                                   
-                                                                                                                                                                                                                                   
-          - name: Build GUI                                                                                                                                                                                                        
-            run: |                                                                                                                                                                                                                 
-              config = "{{ github.event.inputs.configuration }}"                                                                                                                                                                   
-              dotnet build "CavernSamples/CavernizeGUI/CavernizeGUI.csproj" -c $config                                                                                                                                             
-                                                                                                                                                                                                                                   
-          - name: Publish (self‑contained) for Windows                                                                                                                                                                             
-            run: |                                                                                                                                                                                                                 
-              config = "{{ github.event.inputs.configuration }}"                                                                                                                                                                   
-              dotnet publish "CavernSamples/CavernizeGUI/CavernizeGUI.csproj" -c $config -r win-x64 --self-contained false --output publish                                                                                        
-                                                                                                                                                                                                                                   
-          - name: Package artifact                                                                                                                                                                                                 
-            run: |                                                                                                                                                                                                                 
-              Compress-Archive -Path publish/* -DestinationPath CavernizeGUI.zip                                                                                                                                                   
-                                                                                                                                                                                                                                   
-          - name: Upload GUI artifact                                                                                                                                                                                              
-            uses: actions/upload-artifact@v4                                                                                                                                                                                       
-            with:                                                                                                                                                                                                                  
-              name: CavernizeGUI                                                                                                                                                                                                   
-              path: CavernizeGUI.zip                                                                                                                                                                                               
-              retention-days: 7                 
+name: Build CavernizeGUI (Windows)
+
+on:
+  workflow_dispatch:
+    inputs:
+      configuration:
+        description: "Build configuration (Release or Debug)"
+        required: true
+        default: Release
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: pwsh
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup .NET 8 SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "8.0.x"
+          include-prerelease: true
+
+      - name: Restore NuGet packages
+        run: dotnet restore "CavernSamples/CavernizeGUI/CavernizeGUI.csproj"
+
+      - name: Build GUI
+        run: |
+          $config = "${{ github.event.inputs.configuration }}"
+          dotnet build "CavernSamples/CavernizeGUI/CavernizeGUI.csproj" -c $config
+
+      - name: Publish (self-contained) for Windows
+        run: |
+          $config = "${{ github.event.inputs.configuration }}"
+          dotnet publish "CavernSamples/CavernizeGUI/CavernizeGUI.csproj" -c $config -r win-x64 --self-contained false --output publish
+
+      - name: Package artifact
+        run: |
+          Compress-Archive -Path publish/* -DestinationPath CavernizeGUI.zip
+
+      - name: Upload GUI artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: CavernizeGUI
+          path: CavernizeGUI.zip
+          retention-days: 7
+
